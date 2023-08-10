@@ -17,12 +17,15 @@ public class PermutationBitTest {
         for (int i = 0; i < N; i++) {
             input[i] = sc.nextInt();
         }
+        long start = System.nanoTime();
         permutation(0,0);
+        long end = System.nanoTime();
+        System.out.println((end - start)/1_000_000_000.0);
         
     }
     private static void permutation(int cnt, int flag){
         if (cnt == R){
-            System.out.println(Arrays.toString(numbers));
+//            System.out.println(Arrays.toString(numbers));
             return;
         }
         for (int i = 0; i < N; i++) {
