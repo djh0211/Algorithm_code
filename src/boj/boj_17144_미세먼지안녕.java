@@ -44,6 +44,12 @@ public class boj_17144_미세먼지안녕 {
                 }
             }
         }
+//        for (int i = 0; i < R; i++) {
+//            for (int j = 0; j < C; j++) {
+//                System.out.print(board[i][j]+" ");
+//            }
+//            System.out.println();
+//        }
         System.out.println(sum);
     }
     static void refresh(){
