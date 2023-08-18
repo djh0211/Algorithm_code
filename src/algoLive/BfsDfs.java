@@ -36,7 +36,6 @@ public class BfsDfs {
             int ni = i + di[d];
             int nj = j + dj[d];
             if (0<=ni && ni<N && 0<=nj && nj<N && !v[ni][nj]){
-
                 dfs(ni, nj);
             }
         }
