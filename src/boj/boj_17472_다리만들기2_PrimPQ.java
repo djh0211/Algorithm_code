@@ -1,8 +1,10 @@
 package boj;
-import java.util.*;
-import java.io.*;
 
-public class boj_17472_다리만들기2 {
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.*;
+
+public class boj_17472_다리만들기2_PrimPQ {
     static int n,m;
     static int [][] board;
     static boolean [][] visit;
@@ -12,7 +14,6 @@ public class boj_17472_다리만들기2 {
     static ArrayList<int[]> landArr = new ArrayList<>();
     static ArrayList<int[]> edges;
 
-    static int[] parents;
 
     public static void main(String[] args) throws Exception{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -103,66 +104,68 @@ public class boj_17472_다리만들기2 {
             return Integer.compare(o1[0], o2[0]);
         }));
 
-//        for (int[] a:edges
-//             ) {
-//            System.out.println(Arrays.toString(a));
-//        }
-//
-//        parents = new int[landNum];
-//        for (int i = 0; i < landNum; i++) {
-//            parents[i] = i;
-//        }
-//        int ans = 0;
-//        int cnt = 0;
-//        for (int[] e:edges
-//             ) {
-//            if (union(e[1],e[2])){
-//                // no cycle
-//                ans += e[0];
-//                if (++cnt == landNum - 1){
-//                    break;
-//                }
-//            }
-//        }
-//        if (cnt == landNum - 1){
-//            System.out.println(ans);
-//        }else {
-//            System.out.println(-1);
-//        }
-
         // Prim Algorithm
         g = new int[landNum][landNum]; // 진출 차수 그래프
+        boolean[] v = new boolean[landNum];
         int[] minEdge = new int[landNum];
         for (int i = 0; i < landNum; i++) {
             minEdge[i] = Integer.MAX_VALUE;
         }
-        boolean[] v = new boolean[landNum];
         for (int[] e:edges
              ) {
-            g[e[1]][e[2]] = e[0];
+            if (g[e[1]][e[2]] == 0){
+                g[e[1]][e[2]] = e[0];
+            }else {
+                g[e[1]][e[2]] = Math.min(g[e[1]][e[2]], e[0]);
+            }
         }
-//        for (int[] row:g
-//             ) {
-//            System.out.println(Arrays.toString(row));
+        int result = 0;
+        int cnt = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>((o1,o2)->Integer.compare(o1[1],o2[1])); // 가중치를 기준으로 가장 작은 값
+        minEdge[0]=0; // 초기 시작 노드
+        pq.offer(new int[]{0,minEdge[0]}); // 정점,가중치
+        while (!pq.isEmpty()) {
+            int[] cur = pq.poll();
+            int minVertex = cur[0];
+            int min=cur[1];
+            if (v[minVertex]) continue; // 현재 정점이 이미 방문했다면 jump
+            v[minVertex]=true; // 방문!
+            result+=min; // 가중치 더하기!
+            if (cnt++==landNum-1) break; // N-1개의 간선 -> MST
+            for (int j = 0; j < landNum; j++) { // 다음 시점을 위한 세팅. 방금 추가된 노드에서 진출하는 간선 중에 이미 세팅된 minEdge보다 더 작은 값이 있으면 추가.
+                if (!v[j] && g[minVertex][j]!=0 && minEdge[j]>g[minVertex][j]){
+                    minEdge[j] = g[minVertex][j];
+                    pq.offer(new int[]{j,minEdge[j]});
+                }
+            }
+        }
+//        for (int i = 0; i < landNum; i++) {
+//            int minVertex = -1;
+//            int min=Integer.MAX_VALUE;
+//            for (int j = 0; j < landNum; j++) {
+//                if (!v[j] && min>minEdge[j]){ // 아직 해당 노드 미탐색 + 해당 시점에서 갈 수 있는 최소거리 노드를 찾는 과정
+//                    minVertex=j; // for j 가 다 돌면 해당 변수는 가장 가까운 노드를 담는다.
+//                    min=minEdge[j]; // 다 돌면 해당 변수는 가장 가까운 노드까지의 가중치를 담는다.
+//                }
+//            }
+//            if (minVertex == -1){
+//                System.out.println(-1);
+//                return;
+//            }
+//            v[minVertex]=true; // 방문!
+//            result+=min; // 가중치 더하기!
+//            if (cnt++==landNum-1) break; // N-1개의 간선 -> MST
+//            for (int j = 0; j < landNum; j++) { // 다음 시점을 위한 세팅. 방금 추가된 노드에서 진출하는 간선 중에 이미 세팅된 minEdge보다 더 작은 값이 있으면 추가.
+//                if (!v[j] && g[minVertex][j]!=0 && minEdge[j]>g[minVertex][j]){
+//                    minEdge[j] = g[minVertex][j];
+//                }
+//            }
 //        }
+        if (cnt==landNum)
+            System.out.println(result);
+        else System.out.println(-1);
 
 
     }
-    static int find(int i){
-        if (parents[i]==i){
-            return i;
-        }
-        return parents[i] = find(parents[i]);
-    }
 
-    static boolean union(int a, int b){
-        int aRoot = find(a);
-        int bRoot = find(b);
-        if (aRoot==bRoot){
-            // cycle
-            return false;
-        }
-        parents[bRoot] = aRoot; // level 관리 필요(밸런스 트리를 위해)
-        return true;
-    }
 }
