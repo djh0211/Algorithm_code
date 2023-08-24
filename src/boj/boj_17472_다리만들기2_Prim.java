@@ -3,33 +3,42 @@ package boj;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
-
+/*
+2. MST 구하는 과정(Kruskal/Prim/PrimPQ)
+        -----------------------------
+        2-1 Kruskal
+        edge 배열을 weight 오름차순 정렬 하고 하나씩 담으면서 사이클 검사
+        2-2 Prim/PrimPQ
+        edge 배열을 진출 차수 인접 행렬의 형태로 변경(최대 10*10배열이라 공간복잡도 크게 영향 없을 듯)
+        이후 해당 알고리즘 진행
+*/
 public class boj_17472_다리만들기2_Prim {
     static int n,m;
-    static int [][] board;
+    static int [][] board; // 지도 배열
     static boolean [][] visit;
     static int[][] g;
-    static int [][] move = {{0,1},{1,0},{0,-1},{-1,0}};
+    static int [][] move = {{0,1},{1,0},{0,-1},{-1,0}}; // 사방탐색 방향키
     static HashMap<String, Integer> land = new HashMap<>();
     static ArrayList<int[]> landArr = new ArrayList<>();
     static ArrayList<int[]> edges;
 
 
     public static void main(String[] args) throws Exception{
+        // 입출력 관련
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
-
         n = Integer.parseInt(st.nextToken());
         m = Integer.parseInt(st.nextToken());
         board = new int[n][m];
         visit = new boolean[n][m];
-
         for(int i=0; i<n; i++) {
             st = new StringTokenizer(br.readLine());
             for(int j=0; j<m; j++) {
                 board[i][j] = Integer.parseInt(st.nextToken());
             }
         }
+
+//        1. for i for j 돌며 해당 위치가 미방문한 땅(바다x)인 경우 사방 탐색(bfs) 하며 시작 위치와 같은 섬을 land와 landArr에 담는다.
         int landNum = 0;
         ArrayDeque<int[]> q;
         int[] xy;
@@ -40,7 +49,7 @@ public class boj_17472_다리만들기2_Prim {
                     q = new ArrayDeque<>();
                     q.offerLast(new int[]{i,j});
                     visit[i][j] = true;
-                    land.put(i+" "+j,landNum); // 배열 넣으면 못 찾음
+                    land.put(i+" "+j,landNum); // 클래스로 만들고 isEqual과 hashCode 오버라이딩해서 x좌표와 y좌표가 같으면 같은 객체로 인식하게 해주어야한다.
                     landArr.add(new int[]{i,j,landNum});
                     while (!q.isEmpty()){
                         xy = q.pollFirst();
@@ -50,7 +59,7 @@ public class boj_17472_다리만들기2_Prim {
                         ) {
                             int nx = x+d[0];
                             int ny = y+d[1];
-                            // 배열울 벗어나지 않았고 아직 미탐색이고 바다가 아닌 땅이라면
+                            // 배열을 벗어나지 않았고 아직 미탐색이고 바다가 아닌 땅이라면 -> 같은 번호의 땅이라는 것
                             if (0<=nx && nx<n && 0<=ny && ny<m  && !visit[nx][ny] && board[nx][ny]==1){
                                 q.offerLast(new int[]{nx,ny});
                                 visit[nx][ny] = true;
@@ -59,18 +68,19 @@ public class boj_17472_다리만들기2_Prim {
                             }
                         }
                     }
-                    landNum++;
+                    landNum++; // 다음 섬의 번호. 모든 for문이 끝나면 총 섬의 개수와 같은 값을 갖게 된다.
                 }
             }
         }
 
-        // 다리 제작
+//        2. 그렇게 담긴 landArr(바다가 아닌 모든 땅이 담긴 배열)을 for-each로 돌며 위로 쭉-, 아래로 쭉-, 좌우로 쭉- 이동하며 다리 성립조건을 만족하는 다리들을 edge에 담는다.
         edges = new ArrayList<>();
         for (int[] l:landArr
         ) {
-            int x = l[0];
-            int y = l[1];
-            int curLand = l[2];
+            int x = l[0]; // 땅의 x좌표
+            int y = l[1]; // 땅의 y좌표
+            int curLand = l[2]; // 땅의 섬 번호
+//            위로 쭉-, 아래로 쭉-, 좌우로 쭉- 이동
             for (int[] d:move
             ) {
                 int dist = 0;
@@ -100,10 +110,11 @@ public class boj_17472_다리만들기2_Prim {
                 }
             }
         }
-        Collections.sort(edges, ((Comparator<int[]>) (o1, o2) -> {
-            return Integer.compare(o1[0], o2[0]);
-        }));
 
+//        2-2 Prim/PrimPQ
+//        edge 배열을 진출 차수 인접 행렬의 형태로 변경(최대 10*10배열이라 공간복잡도 크게 영향 없을 듯)
+//        이후 해당 알고리즘 진행
+        Collections.sort(edges, (o1, o2) -> Integer.compare(o1[0], o2[0]));
         // Prim Algorithm
         g = new int[landNum][landNum]; // 진출 차수 그래프
         boolean[] v = new boolean[landNum];
@@ -111,8 +122,10 @@ public class boj_17472_다리만들기2_Prim {
         for (int i = 0; i < landNum; i++) {
             minEdge[i] = Integer.MAX_VALUE;
         }
+        // edges -> 진출차수 인접행렬화
         for (int[] e:edges
              ) {
+            // from 과 to가 같지만 가중치가 다른 경우들이 존재. 따라서 minWeight를 저장
             if (g[e[1]][e[2]] == 0){
                 g[e[1]][e[2]] = e[0];
             }else {
@@ -131,7 +144,8 @@ public class boj_17472_다리만들기2_Prim {
                     min=minEdge[j]; // 다 돌면 해당 변수는 가장 가까운 노드까지의 가중치를 담는다.
                 }
             }
-            if (minVertex == -1){
+            if (minVertex == -1){ // 만들어진 다리가 애초에 없거나, 위의 for문을 돌면서 갱신이 한번도 안되면 minVertex는 -1
+                // ArrayIndexOutOfBoundsException 방지
                 System.out.println(-1);
                 return;
             }
@@ -144,11 +158,9 @@ public class boj_17472_다리만들기2_Prim {
                 }
             }
         }
+        // cnt++이기 때문에 
         if (cnt==landNum)
             System.out.println(result);
         else System.out.println(-1);
-
-
     }
-
 }
